@@ -1,6 +1,7 @@
 package pbits
 
 import (
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -169,4 +170,21 @@ func TestPackMultipleValue(t *testing.T) {
 	// rest bits are zero, so value is also zero
 	assert.Equal(t, NoMask.MaxValue(), Unpack[uint64](packed, Mask48, Mask16))
 
+}
+
+// overflow test
+func TestMask_Protect(t *testing.T) {
+	for i, tm := range tableOfMasks {
+
+		testname := fmt.Sprintf("MaskProtect,%d", tm.bitsCount)
+		t.Run(testname, func(t *testing.T) {
+			m := Mask(i)
+			assert.Equal(t, m.MaxValue(), m.Protect(m.MaxValue()))
+			if i == 0 {
+				assert.Equal(t, m.MaxValue(), m.Protect(m.MaxValue()+1))
+			} else {
+				assert.NotEqual(t, m.MaxValue(), m.Protect(m.MaxValue()+1))
+			}
+		})
+	}
 }

@@ -219,6 +219,7 @@ func (self Mask) MaxValue() uint64 {
 	return tableOfMasks[self].value
 }
 
+// BytesCount how many bytes you need to store value in  memory/disk
 func (self Mask) BytesCount() int {
 	return tableOfMasks[self].bytesCount
 }
@@ -236,7 +237,7 @@ func (self Mask) BitsCount() int {
 
 // Protect guarantees to return a number in the mask range if the higher supply returns zero
 func (self Mask) Protect(val uint64) uint64 {
-	return val & uint64(self)
+	return val & self.MaxValue()
 }
 
 var tableOfMasks = [65]item{}

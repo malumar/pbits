@@ -48,4 +48,4 @@ func main() {
 }
 ```
 
-More examples You find in bits_test.go
+More examples You find in pbits_test.go
