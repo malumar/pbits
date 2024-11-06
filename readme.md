@@ -27,7 +27,7 @@ package main
 
 import (
     "fmt"
-	"github.com/malumar/pbits"
+    "github.com/malumar/pbits"
 )
 
 func main() {

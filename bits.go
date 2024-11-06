@@ -1,7 +1,6 @@
 package pbits
 
 import (
-	"fmt"
 	"math"
 )
 
@@ -309,14 +308,14 @@ func init() {
 			size:       x,
 		}
 		// simple tool to generate code
-		fmt.Printf("\t// Mask%d max value: %d, bitsCount: %d, memory use: %d byte(s) size: %d\n\tMask%d\n\n",
-			i,
-			tableOfMasks[i].value,
-			tableOfMasks[i].bitsCount,
-			tableOfMasks[i].bytesCount,
-			tableOfMasks[i].size,
-			i,
-		)
+		//fmt.Printf("\t// Mask%d max value: %d, bitsCount: %d, memory use: %d byte(s) size: %d\n\tMask%d\n\n",
+		//	i,
+		//	tableOfMasks[i].value,
+		//	tableOfMasks[i].bitsCount,
+		//	tableOfMasks[i].bytesCount,
+		//	tableOfMasks[i].size,
+		//	i,
+		//)
 	}
 
 }
