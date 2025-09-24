@@ -1,9 +1,5 @@
 package pbits
 
-import (
-	"math"
-)
-
 // Mask defines the maximum number that can be stored in bit packing,
 // This is quite problematic, so it is better to use constant arrays
 // e.g. to encode the number 1939 using the smallest possible number of bits in a 64-bit number you need to use this:
@@ -224,15 +220,15 @@ func (self Mask) BytesCount() int {
 	return tableOfMasks[self].bytesCount
 }
 
-// Size int size type
+// Size int size type (0, 32 lub 64)
 func (self Mask) Size() int {
 	return tableOfMasks[self].size
 }
 
 // BitsCount how many bitsCount you need sto store value
-// BitsCount is eault to Mask value
+// BitsCount is equal to Mask value
 func (self Mask) BitsCount() int {
-	return tableOfMasks[self].size
+	return int(tableOfMasks[self].bitsCount)
 }
 
 // Protect guarantees to return a number in the mask range if the higher supply returns zero
@@ -258,73 +254,41 @@ func Value(m Mask) uint64 {
 }
 
 func init() {
-	// initialize all masks
-	for i := range tableOfMasks {
-		vv := powUint64(2, i) - 1
-		bc := int(math.Log2(float64(vv)) / 8)
-		if i > 0 {
-			bc++
-		} else {
-			bc = 0
-		}
-
-		var x int
-		switch bc {
-		case 0:
-			x = 0
-			break
-		case 1:
-			x = 8
-			break
-		case 2:
-			x = 16
-			break
-		case 3:
-			x = 32
-			break
-		case 4:
-			x = 32
-			break
-		case 5:
-			x = 64
-			break
-		case 6:
-			x = 64
-			break
-		case 7:
-			x = 64
-			break
-		case 8:
-			x = 64
-			break
-		default:
-			panic("not supported int size")
-		}
+	for i := 0; i <= 64; i++ {
+		var vv uint64
 		if i == 64 {
 			vv = ^uint64(0)
+		} else {
+			vv = (uint64(1) << uint(i)) - 1
 		}
-		tableOfMasks[i] = item{value: uint64(vv),
-			bitsCount:  uint(i),
-			bytesCount: bc,
-			size:       x,
-		}
-		// simple tool to generate code
-		//fmt.Printf("\t// Mask%d max value: %d, bitsCount: %d, memory use: %d byte(s) size: %d\n\tMask%d\n\n",
-		//	i,
-		//	tableOfMasks[i].value,
-		//	tableOfMasks[i].bitsCount,
-		//	tableOfMasks[i].bytesCount,
-		//	tableOfMasks[i].size,
-		//	i,
-		//)
-	}
 
+		bytes := 0
+		if i > 0 {
+			bytes = (i + 7) / 8
+		}
+
+		intSizeBits := 0
+		if i > 0 {
+			if i <= 32 {
+				intSizeBits = 32
+			} else {
+				intSizeBits = 64
+			}
+		}
+
+		tableOfMasks[i] = item{
+			value:      vv,
+			bitsCount:  uint(i),
+			bytesCount: bytes,
+			size:       intSizeBits,
+		}
+	}
 }
 
 // Pack @value of max value defined by @mask
 // if it is first value in packed integer @prevMask should be equal NoMask
 func Pack[T uint | uint8 | uint16 | uint32 | uint64](value T, prevMask Mask, mask Mask) T {
-	return T(uint64(value) & mask.MaxValue() << uint64(prevMask))
+	return T(((uint64(value) & mask.MaxValue()) << uint64(prevMask)))
 }
 
 // Unpack uint from @value, which max value is defined by @mask
@@ -333,9 +297,5 @@ func Unpack[T uint | uint8 | uint16 | uint32 | uint64](value T, prevMask Mask, m
 	if prevMask == NoMask {
 		return value & T(mask.MaxValue())
 	}
-	return T(uint64(value) >> prevMask & mask.MaxValue())
-}
-
-func powUint64(x, y int) uint64 {
-	return uint64(math.Pow(float64(x), float64(y)))
+	return T(((uint64(value) >> prevMask) & mask.MaxValue()))
 }

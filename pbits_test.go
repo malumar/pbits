@@ -2,9 +2,32 @@ package pbits
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
+
+func TestBitsAndBytes(t *testing.T) {
+	cases := []struct {
+		m     Mask
+		bits  int
+		bytes int
+	}{
+		{NoMask, 0, 0},
+		{Mask1, 1, 1},
+		{Mask8, 8, 1},
+		{Mask9, 9, 2},
+		{Mask16, 16, 2},
+		{Mask24, 24, 3},
+		{Mask32, 32, 4},
+		{Mask33, 33, 5},
+		{Mask64, 64, 8},
+	}
+	for _, c := range cases {
+		assert.Equal(t, c.bits, c.m.BitsCount(), "BitsCount mismatch for %v", c.m)
+		assert.Equal(t, c.bytes, c.m.BytesCount(), "BytesCount mismatch for %v", c.m)
+	}
+}
 
 func Test24BitsInto32(t *testing.T) {
 	mvIn24Bits := uint32(Mask24.MaxValue())
