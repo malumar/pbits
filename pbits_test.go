@@ -1,6 +1,7 @@
 package pbits
 
 import (
+	"encoding/binary"
 	"fmt"
 	"testing"
 
@@ -209,5 +210,38 @@ func TestMask_Protect(t *testing.T) {
 				assert.NotEqual(t, m.MaxValue(), m.Protect(m.MaxValue()+1))
 			}
 		})
+	}
+}
+
+type biter struct {
+	val  uint
+	last Mask
+}
+
+func (b *biter) Reset() { b.val, b.last = 0, 0 }
+func (b *biter) Pack(v uint, m Mask) {
+	mv := uint(m.MaxValue())
+	if v > mv {
+		v = mv
+	}
+	b.val |= (v << b.last)
+	b.last += m
+}
+
+func TestMasksSumAndMax(t *testing.T) {
+	if uint(Mask3+Mask10+Mask19) != 32 {
+		t.Fatalf("sum of masks != 32, got %d", uint(Mask3+Mask10+Mask19))
+	}
+	var b biter
+	b.Reset()
+	b.Pack(0b111, Mask3)
+	b.Pack((1<<10)-1, Mask10)
+	b.Pack((1<<19)-1, Mask19)
+	var buf [4]byte
+	binary.BigEndian.PutUint32(buf[:], uint32(b.val))
+	for i := 0; i < 4; i++ {
+		if buf[i] != 0xFF {
+			t.Fatalf("byte %d != 0xFF, got 0x%02X", i, buf[i])
+		}
 	}
 }
